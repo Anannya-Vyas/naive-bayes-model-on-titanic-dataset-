@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BayesTanic — Titanic Survival Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   BAYESTANIC · CSS DESIGN SYSTEM
+   Black & Saffron · Mandala · Art Deco
+═══════════════════════════════════════════════ */
+:root {
+  --black:   #040404;
+  --deep:    #0a0800;
+  --saffron: #F4A000;
+  --saffron-bright: #FFB800;
+  --saffron-pale:   #FFC94D;
+  --saffron-dim:    #7A5000;
+  --saffron-glow:   rgba(244,160,0,0.18);
+  --rust:    #C45E00;
+  --ivory:   #FFF8E7;
+  --fog:     #9A8060;
+  --surface: rgba(244,160,0,0.04);
+  --border:  rgba(244,160,0,0.20);
+  --border-bright: rgba(244,160,0,0.60);
+  --text:    #EAD9B5;
+  --text-dim:#8A7248;
+
+  /* Typography scale */
+  --fs-xs:   0.8rem;
+  --fs-sm:   0.925rem;
+  --fs-base: 1.05rem;
+  --fs-md:   1.175rem;
+  --fs-lg:   1.35rem;
+  --fs-xl:   1.6rem;
+  --fs-2xl:  2.1rem;
+  --fs-3xl:  2.6rem;
+
+  --font-display: 'Cinzel Decorative', serif;
+  --font-head:    'Cinzel', serif;
+  --font-body:    'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'Space Mono', monospace;
+  --font-serif:   'Playfair Display', Georgia, serif;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 400;
+  line-height: 1.75;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ──────────────────────────────── */
+#cursor {
+  position:fixed; width:12px; height:12px;
+  background:var(--saffron); border-radius:50%;
+  pointer-events:none; z-index:9999;
+  transform:translate(-50%,-50%);
+  transition: width .2s, height .2s;
+  box-shadow: 0 0 20px var(--saffron), 0 0 40px rgba(244,160,0,0.4);
+}
+#cursor-ring {
+  position:fixed; width:44px; height:44px;
+  border:1.5px solid rgba(244,160,0,0.45); border-radius:50%;
+  pointer-events:none; z-index:9998;
+  transform:translate(-50%,-50%);
+  transition: all .12s ease;
+}
+body *{ cursor:none !important; }
+
+/* ── MANDALA BG ──────────────────────────────────── */
+.mandala-bg {
+  position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:960px; height:960px;
+  opacity:0.04; pointer-events:none; z-index:0;
+  animation: mandala-spin 140s linear infinite;
+}
+.mandala-bg2 {
+  position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:640px; height:640px;
+  opacity:0.025; pointer-events:none; z-index:0;
+  animation: mandala-spin 90s linear infinite reverse;
+}
+@keyframes mandala-spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+/* ── NAV ──────────────────────────────────────────── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  background:rgba(4,4,4,0.94);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(24px);
+  display:flex; align-items:center;
+  padding:0 36px; height:68px;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size:1.15rem; color:var(--saffron);
+  letter-spacing:.06em; margin-right:auto;
+  text-shadow:0 0 24px rgba(244,160,0,0.5);
+  line-height:1.1;
+}
+.nav-logo span {
+  color:var(--fog); font-size:var(--fs-xs);
+  display:block; letter-spacing:.25em;
+  font-family:var(--font-head); font-style:italic;
+  margin-top:1px;
+}
+.nav-links { display:flex; gap:4px; }
+.nav-btn {
+  padding:8px 20px;
+  font-family:var(--font-head); font-size:var(--fs-xs);
+  letter-spacing:.14em; text-transform:uppercase;
+  background:none; border:none; color:var(--fog);
+  transition:color .2s; position:relative;
+}
+.nav-btn::after {
+  content:''; position:absolute; bottom:6px;
+  left:20px; right:20px; height:1px;
+  background:var(--saffron);
+  transform:scaleX(0); transition:transform .3s;
+}
+.nav-btn:hover { color:var(--saffron); }
+.nav-btn:hover::after, .nav-btn.active::after { transform:scaleX(1); }
+.nav-btn.active { color:var(--saffron-pale); }
+
+.visitor-pill {
+  margin-left:20px; padding:5px 16px;
+  border:1px solid var(--border);
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  color:var(--fog); letter-spacing:.08em; white-space:nowrap;
+}
+.visitor-pill strong { color:var(--saffron); }
+
+/* ── DB STATUS INDICATOR ────────────────────────── */
+#db-status {
+  width:8px; height:8px; border-radius:50%;
+  display:inline-block; margin-right:6px;
+  background:#555; transition:background .3s;
+}
+#db-status.online  { background:#4ade80; box-shadow:0 0 8px #4ade80; }
+#db-status.offline { background:#f87171; }
+
+/* ── PAGES ────────────────────────────────────────── */
+.page { display:none; min-height:100vh; padding:96px 0 80px; position:relative; z-index:1; }
+.page.active { display:block; }
+#page-home { display:none; align-items:center; justify-content:center;
+  min-height:100vh; padding:0; text-align:center; overflow:hidden; }
+#page-home.active { display:flex; }
+
+.container    { max-width:1120px; margin:0 auto; padding:0 36px; }
+.container-sm { max-width:800px;  margin:0 auto; padding:0 36px; }
+
+/* ── HERO ─────────────────────────────────────────── */
+.hero-inner { position:relative; z-index:2; padding:0 24px; }
+.hero-kicker {
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  letter-spacing:.35em; text-transform:uppercase;
+  color:var(--saffron); margin-bottom:28px;
+  display:inline-block; border:1px solid var(--border);
+  padding:7px 22px; animation:fadeUp .8s ease both;
+}
+.hero-title {
+  font-family:var(--font-display);
+  font-size:clamp(3rem, 8.5vw, 7.5rem);
+  font-weight:900; line-height:1;
+  color:var(--ivory);
+  text-shadow:0 0 100px rgba(244,160,0,0.18);
+  animation:fadeUp .8s ease .15s both;
+}
+.hero-title em { color:var(--saffron); font-style:normal; }
+.hero-sub {
+  margin-top:28px;
+  font-family:var(--font-serif); font-style:italic;
+  font-size:var(--fs-xl); color:var(--fog);
+  animation:fadeUp .8s ease .3s both;
+}
+.hero-line {
+  margin:36px auto; width:200px; height:1px;
+  background:linear-gradient(90deg,transparent,var(--saffron),transparent);
+  animation:fadeUp .8s ease .45s both;
+}
+.hero-cta {
+  display:inline-flex; gap:16px; flex-wrap:wrap;
+  justify-content:center; animation:fadeUp .8s ease .6s both;
+}
+.btn-primary {
+  padding:18px 44px; background:var(--saffron); color:var(--black);
+  font-family:var(--font-head); font-size:var(--fs-sm);
+  letter-spacing:.15em; text-transform:uppercase;
+  border:none; font-weight:700;
+  clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+  transition:background .2s, transform .2s;
+}
+.btn-primary:hover { background:var(--saffron-bright); transform:translateY(-2px); }
+.btn-ghost {
+  padding:18px 44px; background:transparent; color:var(--saffron);
+  font-family:var(--font-head); font-size:var(--fs-sm);
+  letter-spacing:.15em; text-transform:uppercase;
+  border:1px solid var(--border-bright);
+  clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+  transition:background .2s, transform .2s;
+}
+.btn-ghost:hover { background:var(--saffron-glow); transform:translateY(-2px); }
+
+/* ── SECTION HEADERS ─────────────────────────────── */
+.sec-header { text-align:center; margin-bottom:60px; }
+.sec-eyebrow {
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--saffron); margin-bottom:14px; display:block;
+}
+.sec-title {
+  font-family:var(--font-display);
+  font-size:clamp(1.8rem, 4vw, 3rem);
+  color:var(--ivory); font-weight:700; line-height:1.15;
+}
+.sec-rule {
+  margin:20px auto 0; width:80px; height:2px;
+  background:linear-gradient(90deg,transparent,var(--saffron),transparent);
+}
+
+/* ── CARDS ────────────────────────────────────────── */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  padding:36px; position:relative;
+  transition:border-color .3s, transform .3s;
+}
+.card::before {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:2px; background:linear-gradient(90deg,transparent,var(--saffron),transparent);
+  opacity:0; transition:opacity .3s;
+}
+.card:hover { border-color:var(--border-bright); transform:translateY(-3px); }
+.card:hover::before { opacity:1; }
+.card-corner {
+  position:absolute; width:18px; height:18px;
+  border-color:var(--saffron-dim); border-style:solid;
+  transition:border-color .3s;
+}
+.card:hover .card-corner { border-color:var(--saffron); }
+.cc-tl{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.cc-tr{top:-1px;right:-1px;border-width:2px 2px 0 0;}
+.cc-bl{bottom:-1px;left:-1px;border-width:0 0 2px 2px;}
+.cc-br{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+
+/* ── PARTICLES ─────────────────────────────────────── */
+.particle {
+  position:absolute; border-radius:50%;
+  background:var(--saffron); pointer-events:none;
+  animation:particle-float linear infinite; opacity:0;
+}
+@keyframes particle-float {
+  0%   { opacity:0; transform:translateY(0) scale(0); }
+  10%  { opacity:0.6; }
+  90%  { opacity:0.3; }
+  100% { opacity:0; transform:translateY(-100vh) scale(1); }
+}
+
+/* ── PREDICTOR ─────────────────────────────────────── */
+.predictor-layout {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:36px; align-items:start;
+}
+.form-title {
+  font-family:var(--font-head); font-size:var(--fs-sm);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--saffron); margin-bottom:30px;
+  display:flex; align-items:center; gap:12px;
+}
+.form-title::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg,var(--border-bright),transparent);
+}
+.field { margin-bottom:24px; }
+label.lbl {
+  display:block; font-family:var(--font-mono);
+  font-size:var(--fs-xs); letter-spacing:.18em;
+  text-transform:uppercase; color:var(--fog); margin-bottom:10px;
+}
+label.lbl em { color:var(--saffron); font-style:normal; }
+
+input[type=number], input[type=text], select {
+  width:100%; background:rgba(244,160,0,0.05);
+  border:1px solid var(--border); color:var(--ivory);
+  font-family:var(--font-mono); font-size:var(--fs-sm);
+  padding:14px 18px; outline:none;
+  transition:border-color .2s, box-shadow .2s;
+  -webkit-appearance:none; appearance:none;
+}
+input[type=number]:focus, input[type=text]:focus, select:focus {
+  border-color:var(--saffron);
+  box-shadow:0 0 0 3px rgba(244,160,0,0.1);
+}
+select option { background:#0a0800; }
+
+.pill-group { display:flex; gap:10px; flex-wrap:wrap; }
+.pill {
+  flex:1; min-width:70px; padding:13px 10px;
+  text-align:center;
+  background:rgba(244,160,0,0.04); border:1px solid var(--border);
+  font-family:var(--font-head); font-size:var(--fs-xs);
+  letter-spacing:.1em; color:var(--fog);
+  transition:all .2s; user-select:none;
+}
+.pill:hover { border-color:var(--saffron); color:var(--saffron-pale); }
+.pill.on {
+  background:rgba(244,160,0,0.15); border-color:var(--saffron);
+  color:var(--saffron); box-shadow:0 0 14px rgba(244,160,0,0.2);
+}
+.range-wrap { display:flex; align-items:center; gap:16px; }
+input[type=range] {
+  flex:1; -webkit-appearance:none; height:3px;
+  background:rgba(244,160,0,0.14); outline:none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:22px; height:22px;
+  background:var(--saffron); border-radius:50%;
+  box-shadow:0 0 12px rgba(244,160,0,0.6);
+  transition:transform .2s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.3); }
+.range-val {
+  font-family:var(--font-mono); font-size:var(--fs-md);
+  color:var(--saffron); min-width:44px;
+  text-align:center; font-weight:700;
+}
+.predict-btn {
+  width:100%; margin-top:10px; padding:22px;
+  background:transparent; border:1px solid var(--saffron);
+  font-family:var(--font-display); font-size:var(--fs-md);
+  color:var(--saffron); position:relative; overflow:hidden;
+  letter-spacing:.1em; transition:color .35s;
+  clip-path:polygon(14px 0%,100% 0%,calc(100% - 14px) 100%,0% 100%);
+}
+.predict-btn::before {
+  content:''; position:absolute; inset:0;
+  background:var(--saffron); transform:translateX(-105%);
+  transition:transform .35s cubic-bezier(.4,0,.2,1); z-index:0;
+}
+.predict-btn:hover::before { transform:translateX(0); }
+.predict-btn:hover { color:var(--black); }
+.predict-btn span { position:relative; z-index:1; }
+
+/* Result panel */
+.result-panel {
+  border:1px solid var(--border); background:var(--surface);
+  padding:40px; display:none; position:relative; overflow:hidden;
+  animation:fadeUp .5s ease both;
+}
+.result-panel.show { display:block; }
+.result-glow {
+  position:absolute; top:-60px; left:50%; transform:translateX(-50%);
+  width:320px; height:320px; border-radius:50%;
+  pointer-events:none; filter:blur(70px); opacity:.18;
+}
+.result-panel.survived .result-glow { background:#4ade80; }
+.result-panel.died .result-glow { background:#f87171; }
+.result-verdict {
+  font-family:var(--font-display); font-size:var(--fs-2xl);
+  font-weight:900; text-align:center; margin-bottom:8px;
+}
+.result-panel.survived .result-verdict { color:#4ade80; }
+.result-panel.died .result-verdict { color:#f87171; }
+.result-icon-big { text-align:center; font-size:60px; margin-bottom:18px; }
+.result-pct {
+  text-align:center; font-family:var(--font-head);
+  font-size:4rem; color:var(--saffron); font-weight:700;
+  text-shadow:0 0 30px rgba(244,160,0,0.4);
+}
+.result-label {
+  text-align:center; color:var(--fog); font-style:italic;
+  font-size:var(--fs-sm); margin-bottom:28px;
+}
+.prob-bar {
+  height:7px; background:rgba(255,255,255,0.07);
+  margin-bottom:32px; position:relative;
+}
+.prob-fill {
+  height:100%; width:0%; transition:width 1.4s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+.prob-fill::after {
+  content:''; position:absolute; right:0; top:50%;
+  transform:translateY(-50%); width:14px; height:14px;
+  border-radius:50%; background:currentColor;
+  box-shadow:0 0 12px currentColor;
+}
+.result-panel.survived .prob-fill { background:linear-gradient(90deg,#2d6a4f,#4ade80); }
+.result-panel.died .prob-fill { background:linear-gradient(90deg,#7a1f1f,#f87171); }
+.factors-title {
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--saffron); margin-bottom:14px;
+}
+.factor { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; }
+.factor-icon { font-size:1rem; flex-shrink:0; margin-top:3px; }
+.factor-text { color:var(--text-dim); font-size:var(--fs-base); line-height:1.6; }
+.factor-text strong { color:var(--text); }
+.dl-btn {
+  width:100%; margin-top:28px; padding:16px;
+  background:rgba(244,160,0,0.1); border:1px solid var(--border-bright);
+  font-family:var(--font-head); font-size:var(--fs-sm);
+  letter-spacing:.15em; color:var(--saffron);
+  text-transform:uppercase; transition:background .2s;
+  display:flex; align-items:center; justify-content:center; gap:12px;
+}
+.dl-btn:hover { background:rgba(244,160,0,0.22); }
+
+/* Visitor counter */
+.visitor-bar { display:flex; gap:24px; margin-bottom:40px; flex-wrap:wrap; }
+.vis-stat {
+  flex:1; min-width:120px; border:1px solid var(--border);
+  padding:22px; text-align:center;
+}
+.vis-num {
+  font-family:var(--font-head); font-size:var(--fs-2xl);
+  color:var(--saffron); display:block; font-weight:700;
+}
+.vis-lbl {
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  letter-spacing:.18em; text-transform:uppercase;
+  color:var(--fog); margin-top:6px;
+}
+
+/* ── BAYES PAGE ──────────────────────────────────── */
+.bayes-formula {
+  background:rgba(244,160,0,0.05); border:1px solid var(--border-bright);
+  padding:40px; text-align:center; margin:44px 0; position:relative;
+}
+.formula-tex {
+  font-family:var(--font-serif); font-size:var(--fs-xl);
+  color:var(--ivory); letter-spacing:.05em;
+}
+.formula-tex .frac { display:inline-block; vertical-align:middle; text-align:center; }
+.formula-tex .frac .num { display:block; border-bottom:1px solid var(--saffron); padding:0 14px 6px; }
+.formula-tex .frac .den { display:block; padding:6px 14px 0; }
+.formula-tex .sym { color:var(--saffron); font-size:var(--fs-xl); vertical-align:middle; }
+.theorem-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; margin-bottom:44px; }
+.theorem-card { border:1px solid var(--border); padding:30px; background:var(--surface); position:relative; }
+.tc-num {
+  font-family:var(--font-display); font-size:3.2rem;
+  color:rgba(244,160,0,0.1); position:absolute;
+  top:12px; right:18px; line-height:1;
+}
+.tc-title {
+  font-family:var(--font-head); font-size:var(--fs-sm);
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--saffron); margin-bottom:14px;
+}
+.tc-body { font-size:var(--fs-base); color:var(--text-dim); line-height:1.85; }
+
+/* Bayes calc */
+.bayes-calc {
+  background:rgba(244,160,0,0.03); border:1px solid var(--border);
+  padding:40px; margin:36px 0;
+}
+.calc-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px; margin-bottom:30px; }
+.calc-field label {
+  display:block; font-family:var(--font-mono); font-size:var(--fs-xs);
+  letter-spacing:.15em; text-transform:uppercase; color:var(--fog); margin-bottom:8px;
+}
+.calc-field input {
+  width:100%; background:rgba(244,160,0,0.05); border:1px solid var(--border);
+  color:var(--ivory); font-family:var(--font-mono); font-size:var(--fs-base);
+  padding:12px 14px; outline:none; transition:border-color .2s;
+}
+.calc-field input:focus { border-color:var(--saffron); }
+.calc-result {
+  text-align:center; padding:26px;
+  background:rgba(244,160,0,0.08); border:1px solid var(--border-bright);
+}
+.calc-result .big { font-family:var(--font-head); font-size:var(--fs-3xl); color:var(--saffron); font-weight:700; }
+.calc-result .sub { font-size:var(--fs-sm); color:var(--fog); margin-top:6px; }
+
+/* ── EDA PAGE ─────────────────────────────────────── */
+.charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-bottom:36px; }
+.chart-box { background:var(--surface); border:1px solid var(--border); padding:26px; }
+.chart-box.full { grid-column:1/-1; }
+.chart-title {
+  font-family:var(--font-head); font-size:var(--fs-sm);
+  letter-spacing:.15em; text-transform:uppercase;
+  color:var(--saffron); margin-bottom:20px;
+  display:flex; align-items:center; gap:10px;
+}
+.chart-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.chart-box canvas { max-height:280px; }
+.chart-box.full canvas { max-height:220px; }
+.insight-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px; margin-top:36px; }
+.insight-card { border:1px solid var(--border); padding:22px; background:var(--surface); }
+.insight-num { font-family:var(--font-head); font-size:var(--fs-2xl); color:var(--saffron); display:block; font-weight:700; }
+.insight-lbl { font-family:var(--font-mono); font-size:var(--fs-xs); letter-spacing:.18em; text-transform:uppercase; color:var(--fog); margin-top:6px; }
+.insight-sub { font-size:var(--fs-sm); color:var(--text-dim); margin-top:8px; font-style:italic; }
+
+/* ── TOOLS PAGE ──────────────────────────────────── */
+.tools-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:26px; }
+.tool-card {
+  border:1px solid var(--border); padding:30px;
+  background:var(--surface); position:relative; overflow:hidden;
+}
+.tool-icon { font-size:2.4rem; margin-bottom:16px; display:block; }
+.tool-name { font-family:var(--font-head); font-size:var(--fs-base); letter-spacing:.12em; text-transform:uppercase; color:var(--ivory); margin-bottom:12px; }
+.tool-desc { font-size:var(--fs-base); color:var(--text-dim); line-height:1.8; margin-bottom:20px; }
+.tool-tag {
+  display:inline-block; padding:4px 12px;
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  letter-spacing:.1em; text-transform:uppercase;
+  border:1px solid var(--border); color:var(--saffron-dim); margin:3px;
+}
+.glossary { margin-top:44px; }
+.gloss-item { border-bottom:1px solid rgba(244,160,0,0.08); padding:22px 0; display:flex; gap:28px; align-items:flex-start; }
+.gloss-term { font-family:var(--font-head); font-size:var(--fs-sm); letter-spacing:.1em; color:var(--saffron); min-width:190px; padding-top:2px; }
+.gloss-def { font-size:var(--fs-base); color:var(--text-dim); line-height:1.8; }
+.gloss-code { font-family:var(--font-mono); font-size:var(--fs-xs); background:rgba(244,160,0,0.08); border:1px solid var(--border); padding:3px 10px; color:var(--saffron-pale); margin-top:6px; display:inline-block; }
+
+/* ── VISITOR PAGE ─────────────────────────────────── */
+.visit-form-wrap {
+  max-width:540px; margin:0 auto 44px;
+  border:1px solid var(--border); padding:40px; background:var(--surface);
+}
+.visit-form-title {
+  font-family:var(--font-head); font-size:var(--fs-base);
+  letter-spacing:.15em; text-transform:uppercase;
+  color:var(--saffron); margin-bottom:28px; text-align:center;
+}
+/* .visit-log { margin-top:44px; }
+.log-row {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:16px 0; border-bottom:1px solid rgba(244,160,0,0.07);
+  font-size:var(--fs-sm); animation:fadeUp .3s ease both;
+  gap:16px;
+} */
+.log-name { color:var(--text); font-size:var(--fs-base); font-weight:500; }
+.log-time { font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fog); flex-shrink:0; }
+.log-badge { padding:3px 12px; font-family:var(--font-mono); font-size:var(--fs-xs); letter-spacing:.1em; border:1px solid var(--border); color:var(--saffron-dim); }
+.log-prediction {
+  margin-top:6px; font-size:var(--fs-xs); font-family:var(--font-mono);
+  color:var(--saffron-dim); letter-spacing:.05em;
+}
+.log-prediction.survived-tag { color:#4ade80; }
+.log-prediction.died-tag { color:#f87171; }
+
+/* Syncing indicator */
+.sync-indicator {
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  color:var(--fog); padding:6px 14px; border:1px solid var(--border);
+  margin-bottom:16px;
+}
+.sync-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:#4ade80; animation:sync-pulse 2s ease infinite;
+}
+@keyframes sync-pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── MISC ────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(22px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.spinner {
+  display:inline-block; width:16px; height:16px;
+  border:2px solid currentColor; border-top-color:transparent;
+  border-radius:50%; animation:spin .7s linear infinite;
+  vertical-align:middle; margin-right:8px;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.ornament { text-align:center; margin:44px 0; font-size:1.5rem; color:var(--saffron-dim); letter-spacing:.5em; }
+
+/* hero feature strips */
+.hero-strips {
+  position:absolute; bottom:0; left:0; right:0; z-index:2;
+  border-top:1px solid var(--border); display:flex;
+  background:rgba(4,4,4,0.85); backdrop-filter:blur(12px);
+}
+.hero-strip-item {
+  flex:1; padding:22px 28px; border-right:1px solid var(--border);
+}
+.hero-strip-item:last-child { border-right:none; }
+.hs-label { font-family:var(--font-head); font-size:var(--fs-xs); letter-spacing:.2em; text-transform:uppercase; color:var(--saffron); margin-bottom:6px; }
+.hs-val { font-size:var(--fs-base); color:var(--fog); }
+
+/* toast notification */
+#toast {
+  position:fixed; bottom:32px; right:32px; z-index:9999;
+  padding:14px 22px; background:rgba(4,4,4,0.96);
+  border:1px solid var(--border); color:var(--text);
+  font-family:var(--font-mono); font-size:var(--fs-xs);
+  letter-spacing:.08em; opacity:0; pointer-events:none;
+  transition:opacity .3s; max-width:320px;
+}
+#toast.show { opacity:1; pointer-events:auto; }
+#toast .t-icon { color:var(--saffron); margin-right:8px; }
+
+@media(max-width:768px){
+  .predictor-layout,.charts-grid,.calc-grid { grid-template-columns:1fr; }
+  .chart-box.full { grid-column:1; }
+  .gloss-item { flex-direction:column; gap:8px; }
+  .gloss-term { min-width:auto; }
+  nav { padding:0 16px; }
+  .nav-btn { padding:8px 12px; font-size:.62rem; }
+  .container,.container-sm { padding:0 18px; }
+  .hero-strips { flex-direction:column; position:relative; }
+  .hero-strip-item { border-right:none; border-bottom:1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Toast -->
+<div id="toast"><span class="t-icon">✦</span><span id="toast-msg"></span></div>
+
+<!-- Mandala backgrounds -->
+<svg class="mandala-bg" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#F4A000">
+    <circle cx="450" cy="450" r="400" stroke-width=".5"/>
+    <circle cx="450" cy="450" r="350" stroke-width=".3"/>
+    <circle cx="450" cy="450" r="300" stroke-width=".5"/>
+    <circle cx="450" cy="450" r="250" stroke-width=".3"/>
+    <circle cx="450" cy="450" r="200" stroke-width=".5"/>
+    <circle cx="450" cy="450" r="150" stroke-width=".3"/>
+    <circle cx="450" cy="450" r="100" stroke-width=".5"/>
+    <circle cx="450" cy="450" r="50"  stroke-width=".3"/>
+    <g>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(22.5 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(45 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(67.5 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(90 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(112.5 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(135 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(157.5 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(180 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(202.5 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(225 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(247.5 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(270 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(292.5 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(315 450 450)"/>
+      <ellipse cx="450" cy="250" rx="18" ry="55" fill="rgba(244,160,0,0.06)" stroke-width=".5" transform="rotate(337.5 450 450)"/>
+    </g>
+    <line x1="450" y1="50" x2="450" y2="850" stroke-width=".2"/>
+    <line x1="50" y1="450" x2="850" y2="450" stroke-width=".2"/>
+    <line x1="167" y1="167" x2="733" y2="733" stroke-width=".2"/>
+    <line x1="733" y1="167" x2="167" y2="733" stroke-width=".2"/>
+    <line x1="450" y1="50" x2="450" y2="850" stroke-width=".2" transform="rotate(22.5 450 450)"/>
+    <line x1="450" y1="50" x2="450" y2="850" stroke-width=".2" transform="rotate(67.5 450 450)"/>
+    <line x1="450" y1="50" x2="450" y2="850" stroke-width=".2" transform="rotate(112.5 450 450)"/>
+    <line x1="450" y1="50" x2="450" y2="850" stroke-width=".2" transform="rotate(157.5 450 450)"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5" transform="rotate(45 450 450)"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5" transform="rotate(90 450 450)"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5" transform="rotate(135 450 450)"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5" transform="rotate(180 450 450)"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5" transform="rotate(225 450 450)"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5" transform="rotate(270 450 450)"/>
+    <polygon points="450,55 465,70 450,85 435,70" fill="rgba(244,160,0,0.1)" stroke-width=".5" transform="rotate(315 450 450)"/>
+  </g>
+</svg>
+<svg class="mandala-bg2" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#F4A000">
+    <circle cx="450" cy="450" r="380" stroke-width=".4"/>
+    <circle cx="450" cy="450" r="280" stroke-width=".3"/>
+    <circle cx="450" cy="450" r="180" stroke-width=".4"/>
+    <circle cx="450" cy="450" r="80" stroke-width=".3"/>
+    <line x1="450" y1="70" x2="450" y2="830" stroke-width=".2" transform="rotate(30 450 450)"/>
+    <line x1="450" y1="70" x2="450" y2="830" stroke-width=".2" transform="rotate(60 450 450)"/>
+    <line x1="450" y1="70" x2="450" y2="830" stroke-width=".2" transform="rotate(90 450 450)"/>
+    <line x1="450" y1="70" x2="450" y2="830" stroke-width=".2" transform="rotate(120 450 450)"/>
+    <line x1="450" y1="70" x2="450" y2="830" stroke-width=".2" transform="rotate(150 450 450)"/>
+  </g>
+</svg>
+
+<!-- ── NAV ─────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">
+    BayesTanic
+    <span>Titanic Survival Intelligence</span>
+  </div>
+  <div class="nav-links">
+    <button class="nav-btn active" onclick="goPage('home',this)">Home</button>
+    <button class="nav-btn" onclick="goPage('predictor',this)">Predict</button>
+    <button class="nav-btn" onclick="goPage('bayes',this)">Theorem</button>
+    <button class="nav-btn" onclick="goPage('eda',this)">Data & EDA</button>
+    <button class="nav-btn" onclick="goPage('tools',this)">Tools</button>
+    <button class="nav-btn" onclick="goPage('visitors',this)">Visitors</button>
+  </div>
+  <div class="visitor-pill"><span id="db-status"></span>👁 <strong id="nav-count">—</strong></div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE: HOME -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div id="particles-home" style="position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden;"></div>
+  <div class="hero-inner">
+    <div class="hero-kicker">Naive Bayes · Machine Learning · April 15, 1912</div>
+    <h1 class="hero-title">Bayes<em>Tanic</em></h1>
+    <p class="hero-sub">"Would you have survived the unsinkable ship?"</p>
+    <div class="hero-line"></div>
+    <p style="font-size:var(--fs-md);color:var(--fog);max-width:540px;margin:0 auto 36px;font-style:italic;line-height:1.9;">
+      A complete machine learning journey — from raw data to Gaussian Naive Bayes predictions,
+      built on the legendary Titanic dataset with full EDA, Bayesian theory, and a live predictor.
+    </p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="goPage('predictor',document.querySelector('.nav-btn:nth-child(2)'))">⚓ Predict My Fate</button>
+      <button class="btn-ghost"   onclick="goPage('bayes',document.querySelector('.nav-btn:nth-child(3)'))">Learn Bayes Theorem</button>
+    </div>
+  </div>
+  <div class="hero-strips">
+    <div class="hero-strip-item"><div class="hs-label">Gaussian NB</div><div class="hs-val">~80% accuracy via GridSearchCV</div></div>
+    <div class="hero-strip-item"><div class="hs-label">Full EDA</div><div class="hs-val">Survival patterns across 9 features</div></div>
+    <div class="hero-strip-item"><div class="hs-label">PDF Report</div><div class="hs-val">Export your personalised prediction</div></div>
+    <div class="hero-strip-item"><div class="hs-label">Live Database</div><div class="hs-val">All predictions stored in Supabase</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE: PREDICTOR -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page" id="page-predictor">
+<div class="container">
+  <div class="sec-header">
+    <span class="sec-eyebrow">Gaussian Naive Bayes · Live Inference</span>
+    <h2 class="sec-title">Survival Predictor</h2>
+    <div class="sec-rule"></div>
+    <p style="margin-top:18px;color:var(--fog);font-style:italic;font-size:var(--fs-md);">Enter your passenger profile. The model applies your trained Gaussian NB with StandardScaler normalisation and engineered features.</p>
+  </div>
+
+  <div class="predictor-layout">
+    <!-- Left: Form -->
+    <div class="card">
+      <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+      <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+      <div class="form-title">Passenger Profile</div>
+
+      <div class="field">
+        <label class="lbl">Full Name <em>(for your report)</em></label>
+        <input type="text" id="p-name" placeholder="e.g. Rose DeWitt Bukater"/>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Gender <em>*</em></label>
+        <div class="pill-group">
+          <div class="pill on" data-f="sex" data-v="1" onclick="setPill(this)">♂ Male</div>
+          <div class="pill"    data-f="sex" data-v="0" onclick="setPill(this)">♀ Female</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Ticket Class <em>*</em></label>
+        <div class="pill-group">
+          <div class="pill"    data-f="pclass" data-v="1" onclick="setPill(this)">1st — £££</div>
+          <div class="pill on" data-f="pclass" data-v="2" onclick="setPill(this)">2nd — ££</div>
+          <div class="pill"    data-f="pclass" data-v="3" onclick="setPill(this)">3rd — £</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Age (years) <em>*</em></label>
+        <div class="range-wrap">
+          <input type="range" id="age-r" min="1" max="80" value="30"
+            oninput="document.getElementById('age-v').textContent=this.value;document.getElementById('age-n').value=this.value">
+          <span class="range-val" id="age-v">30</span>
+        </div>
+        <input type="number" id="age-n" value="30" min="1" max="80" style="margin-top:8px;"
+          oninput="document.getElementById('age-r').value=this.value;document.getElementById('age-v').textContent=this.value"/>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Fare Paid (£) <em>— 1st≈87, 2nd≈21, 3rd≈13</em></label>
+        <input type="number" id="p-fare" value="21" min="0" max="600" placeholder="21"/>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Port of Embarkation</label>
+        <select id="p-emb">
+          <option value="2">Southampton (S) — 72% of passengers</option>
+          <option value="0">Cherbourg (C) — 18.9%</option>
+          <option value="1">Queenstown (Q) — 8.6%</option>
+        </select>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+        <div class="field">
+          <label class="lbl">Siblings / Spouse</label>
+          <div class="range-wrap">
+            <input type="range" id="sib-r" min="0" max="8" value="0"
+              oninput="document.getElementById('sib-v').textContent=this.value">
+            <span class="range-val" id="sib-v">0</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="lbl">Parents / Children</label>
+          <div class="range-wrap">
+            <input type="range" id="par-r" min="0" max="6" value="0"
+              oninput="document.getElementById('par-v').textContent=this.value">
+            <span class="range-val" id="par-v">0</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="predict-btn" onclick="runPredict()">
+        <span id="btn-lbl">⚓ &nbsp; Reveal My Fate</span>
+      </button>
+    </div>
+
+    <!-- Right: Result -->
+    <div>
+      <div class="visitor-bar">
+        <div class="vis-stat"><span class="vis-num" id="pred-count">—</span><div class="vis-lbl">Predictions Run</div></div>
+        <div class="vis-stat"><span class="vis-num" id="surv-rate">—</span><div class="vis-lbl">Survival Rate</div></div>
+        <div class="vis-stat"><span class="vis-num">~80%</span><div class="vis-lbl">Model Accuracy</div></div>
+      </div>
+
+      <div class="result-panel" id="result-panel">
+        <div class="result-glow"></div>
+        <div class="result-icon-big" id="r-icon"></div>
+        <div class="result-verdict" id="r-verdict"></div>
+        <div class="result-pct" id="r-pct"></div>
+        <div class="result-label" id="r-label"></div>
+        <div class="prob-bar"><div class="prob-fill" id="r-fill"></div></div>
+        <div class="factors-title">Key Factors Influencing This Prediction</div>
+        <div id="r-factors"></div>
+        <button class="dl-btn" onclick="downloadPDF()">
+          <span>⬇</span> Download PDF Prediction Report
+        </button>
+      </div>
+
+      <div class="card" id="placeholder-card" style="text-align:center;padding:64px 32px;">
+        <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+        <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+        <div style="font-size:4.5rem;margin-bottom:24px;opacity:.3;">🔮</div>
+        <div style="font-family:var(--font-head);font-size:var(--fs-sm);letter-spacing:.15em;text-transform:uppercase;color:var(--fog);">Your fate awaits</div>
+        <div style="margin-top:14px;font-style:italic;color:var(--text-dim);font-size:var(--fs-base);">Fill in the passenger details and press <em style="color:var(--saffron)">Reveal My Fate</em></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE: BAYES THEOREM -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page" id="page-bayes">
+<div class="container-sm">
+  <div class="sec-header">
+    <span class="sec-eyebrow">Probability Theory · 1763</span>
+    <h2 class="sec-title">Bayes' Theorem</h2>
+    <div class="sec-rule"></div>
+  </div>
+  <p style="font-size:var(--fs-md);color:var(--text-dim);line-height:1.95;margin-bottom:36px;">
+    Bayes' theorem is the mathematical backbone of our Titanic predictor. First described by Reverend Thomas Bayes,
+    it gives us a way to <em style="color:var(--ivory)">update our beliefs</em> when we observe new evidence —
+    exactly what we do when we learn a passenger was female, 1st class, and 28 years old.
+  </p>
+
+  <div class="bayes-formula">
+    <div style="font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.2em;text-transform:uppercase;color:var(--saffron);margin-bottom:22px;">The Fundamental Theorem</div>
+    <div class="formula-tex">
+      P(A|B) &nbsp;=&nbsp;
+      <span class="frac">
+        <span class="num">P(B|A) &nbsp;·&nbsp; P(A)</span>
+        <span class="den">P(B)</span>
+      </span>
+    </div>
+    <div style="margin-top:28px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+      <div><div style="font-family:var(--font-head);color:var(--saffron);font-size:var(--fs-lg);">P(A|B)</div><div style="font-size:var(--fs-sm);color:var(--fog);margin-top:6px;">Posterior<br>Updated belief</div></div>
+      <div><div style="font-family:var(--font-head);color:var(--saffron);font-size:var(--fs-lg);">P(B|A)</div><div style="font-size:var(--fs-sm);color:var(--fog);margin-top:6px;">Likelihood<br>Evidence prob</div></div>
+      <div><div style="font-family:var(--font-head);color:var(--saffron);font-size:var(--fs-lg);">P(A)</div><div style="font-size:var(--fs-sm);color:var(--fog);margin-top:6px;">Prior<br>Initial belief</div></div>
+      <div><div style="font-family:var(--font-head);color:var(--saffron);font-size:var(--fs-lg);">P(B)</div><div style="font-size:var(--fs-sm);color:var(--fog);margin-top:6px;">Evidence<br>Normaliser</div></div>
+    </div>
+  </div>
+
+  <div class="theorem-grid">
+    <div class="theorem-card"><div class="tc-num">01</div><div class="tc-title">Prior Probability</div><div class="tc-body">Our <em>initial belief</em> before seeing any evidence. In the Titanic dataset, 38.4% of passengers survived — so P(Survived) = 0.384. This is the prior our model starts with before looking at any individual features.</div></div>
+    <div class="theorem-card"><div class="tc-num">02</div><div class="tc-title">Likelihood</div><div class="tc-body">How probable is the observed data <em>given</em> a class? For Gaussian NB, each feature follows a normal distribution. P(Female | Survived) is much higher than P(Female | Died) because women had priority access to lifeboats.</div></div>
+    <div class="theorem-card"><div class="tc-num">03</div><div class="tc-title">Posterior Probability</div><div class="tc-body">The <em>updated belief</em> after combining prior and likelihood. After computing all features' Gaussian likelihoods and multiplying by the prior, we get the final probability of survival.</div></div>
+    <div class="theorem-card"><div class="tc-num">04</div><div class="tc-title">Naïve Assumption</div><div class="tc-body">The model assumes features are <em>conditionally independent</em> given the class. This is "naïve" because age and fare are correlated in reality — but GNB still achieves ~80% accuracy, proving the power of simplicity.</div></div>
+    <div class="theorem-card"><div class="tc-num">05</div><div class="tc-title">Gaussian Distribution</div><div class="tc-body">For continuous features like age and fare, we model P(feature | class) as a Gaussian bell curve parameterised by the mean and variance of that feature within each class, estimated from training data.</div></div>
+    <div class="theorem-card"><div class="tc-num">06</div><div class="tc-title">Log-Space Computation</div><div class="tc-body">Multiplying many small probabilities causes underflow. We work in <em>log space</em>: log P(A|B) = log P(A) + Σ log P(xᵢ|A), then use softmax to convert back. var_smoothing prevents log(0).</div></div>
+  </div>
+
+  <div class="ornament">✦ ✦ ✦</div>
+
+  <div class="card" style="margin-bottom:36px;">
+    <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+    <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+    <div class="form-title">How Your Trained Model Works</div>
+    <div style="font-size:var(--fs-base);color:var(--text-dim);line-height:2.1;">
+      <p>Your Python pipeline does the following at prediction time:</p><br>
+      <div style="background:rgba(244,160,0,0.05);border:1px solid var(--border);padding:22px;font-family:var(--font-mono);font-size:var(--fs-xs);line-height:2.2;color:var(--saffron-pale);">
+        1. Engineer features: <span style="color:var(--fog)">family_size, is_alone, age_bin, fare_bin</span><br>
+        2. StandardScaler: <span style="color:var(--fog)">x_scaled = (x − μ) / σ  (per training stats)</span><br>
+        3. For each class c ∈ {0, 1}:<br>
+        &nbsp;&nbsp;&nbsp;log_prob[c] = log(prior[c])<br>
+        &nbsp;&nbsp;&nbsp;for each feature xᵢ:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log_prob[c] += log( Gaussian(xᵢ; μ_ic, σ²_ic + var_smoothing) )<br>
+        4. Predict class = argmax(log_prob)<br>
+        5. Probability = softmax(log_prob)
+      </div>
+      <br>
+      <p>Your <strong style="color:var(--ivory)">GridSearchCV</strong> found the optimal <code style="background:rgba(244,160,0,0.1);padding:2px 8px;color:var(--saffron-pale);">var_smoothing</code> over 100 log-spaced values from 10⁻¹² to 10⁻¹ using 10-fold cross validation.</p>
+    </div>
+  </div>
+
+  <div class="sec-header" style="margin-bottom:24px;">
+    <span class="sec-eyebrow">Interactive</span>
+    <h3 class="sec-title" style="font-size:var(--fs-xl);">Bayes Calculator</h3>
+  </div>
+  <div class="bayes-calc">
+    <div style="font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.2em;text-transform:uppercase;color:var(--saffron);margin-bottom:22px;">Compute P(A|B) yourself</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>P(A) — Prior (0 to 1)</label><input type="number" id="bc-pa" value="0.384" min="0" max="1" step="0.001" oninput="calcBayes()"/></div>
+      <div class="calc-field"><label>P(B|A) — Likelihood</label><input type="number" id="bc-pba" value="0.68" min="0" max="1" step="0.001" oninput="calcBayes()"/></div>
+      <div class="calc-field"><label>P(B) — Evidence</label><input type="number" id="bc-pb" value="0.5" min="0.001" max="1" step="0.001" oninput="calcBayes()"/></div>
+    </div>
+    <div class="calc-result">
+      <div class="big" id="bc-result">52.2%</div>
+      <div class="sub">P(A|B) = P(B|A) × P(A) / P(B)</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE: EDA -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page" id="page-eda">
+<div class="container">
+  <div class="sec-header">
+    <span class="sec-eyebrow">Exploratory Data Analysis · Titanic Dataset</span>
+    <h2 class="sec-title">Data & Visualisations</h2>
+    <div class="sec-rule"></div>
+    <p style="margin-top:18px;color:var(--fog);font-style:italic;font-size:var(--fs-base);">Survival patterns across all engineered features from your Python EDA.</p>
+  </div>
+
+  <div class="insight-grid" style="margin-bottom:44px;">
+    <div class="insight-card"><span class="insight-num">891</span><div class="insight-lbl">Training Rows</div><div class="insight-sub">After dropping deck & null embarked</div></div>
+    <div class="insight-card"><span class="insight-num">11</span><div class="insight-lbl">Features Used</div><div class="insight-sub">After engineering + encoding</div></div>
+    <div class="insight-card"><span class="insight-num">38.4%</span><div class="insight-lbl">Survival Rate</div><div class="insight-sub">342 of 891 passengers</div></div>
+    <div class="insight-card"><span class="insight-num">74.2%</span><div class="insight-lbl">Female Survival</div><div class="insight-sub">vs. 18.9% male</div></div>
+    <div class="insight-card"><span class="insight-num">62.9%</span><div class="insight-lbl">1st Class Survival</div><div class="insight-sub">vs. 47.3% (2nd) & 24.2% (3rd)</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-box"><div class="chart-title">Survival by Gender</div><canvas id="chart-gender"></canvas></div>
+    <div class="chart-box"><div class="chart-title">Survival by Passenger Class</div><canvas id="chart-pclass"></canvas></div>
+    <div class="chart-box"><div class="chart-title">Age Distribution by Survival</div><canvas id="chart-age"></canvas></div>
+    <div class="chart-box"><div class="chart-title">Fare Distribution</div><canvas id="chart-fare"></canvas></div>
+    <div class="chart-box full"><div class="chart-title">Survival Rate by Port of Embarkation & Class</div><canvas id="chart-emb"></canvas></div>
+    <div class="chart-box"><div class="chart-title">Family Size vs Survival Rate</div><canvas id="chart-family"></canvas></div>
+    <div class="chart-box"><div class="chart-title">Model Performance — Confusion Matrix</div><canvas id="chart-conf"></canvas></div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+    <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+    <div class="form-title">What the EDA Revealed</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;font-size:var(--fs-base);color:var(--text-dim);line-height:1.95;">
+      <div>
+        <p><strong style="color:var(--ivory)">Sex was the strongest predictor.</strong> Female passengers had a 74.2% survival rate vs. 18.9% for males — a direct result of the "women and children first" evacuation protocol.</p><br>
+        <p><strong style="color:var(--ivory)">Class mattered enormously.</strong> 1st class passengers had lifeboats physically closer to their cabins. 3rd class passengers were often physically blocked from reaching the upper decks.</p>
+      </div>
+      <div>
+        <p><strong style="color:var(--ivory)">Family size had a sweet spot.</strong> Travelling with a small family (2–4) improved survival. Large families (5+) had trouble evacuating together, reducing survival rates significantly.</p><br>
+        <p><strong style="color:var(--ivory)">Age binning outperformed raw age.</strong> Children (≤12) had elevated survival due to priority boarding. Your <code style="color:var(--saffron-pale);">pd.cut</code> into 5 bins captured this non-linear relationship.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE: TOOLS -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page" id="page-tools">
+<div class="container">
+  <div class="sec-header">
+    <span class="sec-eyebrow">Python Stack · Libraries · Concepts</span>
+    <h2 class="sec-title">Tools & Resources</h2>
+    <div class="sec-rule"></div>
+  </div>
+  <div class="tools-grid">
+    <div class="tool-card"><span class="tool-icon">🐼</span><div class="tool-name">Pandas</div><div class="tool-desc">Used for loading the Titanic dataset, dropping irrelevant columns, filling missing ages with the median, and engineering new features like family_size and age_bin.</div><span class="tool-tag">df.drop()</span><span class="tool-tag">pd.cut()</span><span class="tool-tag">pd.qcut()</span><span class="tool-tag">fillna()</span></div>
+    <div class="tool-card"><span class="tool-icon">🔢</span><div class="tool-name">NumPy</div><div class="tool-desc">Powers the numerical backbone — generating the logspace array for var_smoothing hyperparameter search, and performing underlying array operations inside scikit-learn.</div><span class="tool-tag">np.logspace()</span><span class="tool-tag">np.exp()</span><span class="tool-tag">np.log()</span></div>
+    <div class="tool-card"><span class="tool-icon">🎨</span><div class="tool-name">Seaborn & Matplotlib</div><div class="tool-desc">Generated the correlation heatmap, ROC curve, Precision-Recall curve, and confusion matrix heatmap. Seaborn also provided the built-in titanic dataset loader.</div><span class="tool-tag">sns.heatmap()</span><span class="tool-tag">roc_curve()</span><span class="tool-tag">sns.load_dataset()</span></div>
+    <div class="tool-card"><span class="tool-icon">⚗️</span><div class="tool-name">Scikit-Learn</div><div class="tool-desc">The ML workhorse — GaussianNB, StandardScaler, LabelEncoder, train_test_split with stratification, GridSearchCV with 10-fold CV, and all evaluation metrics.</div><span class="tool-tag">GaussianNB</span><span class="tool-tag">GridSearchCV</span><span class="tool-tag">StandardScaler</span><span class="tool-tag">cross_val_score</span></div>
+    <div class="tool-card"><span class="tool-icon">💾</span><div class="tool-name">Joblib & Pickle</div><div class="tool-desc">Persisted the trained model, scaler, label encoder, and feature names to .pkl files — enabling the model to be loaded and used in production without retraining.</div><span class="tool-tag">joblib.dump()</span><span class="tool-tag">joblib.load()</span><span class="tool-tag">.pkl files</span></div>
+    <div class="tool-card"><span class="tool-icon">📐</span><div class="tool-name">Feature Engineering</div><div class="tool-desc">Your key innovation over the baseline. family_size = sibsp + parch + 1, is_alone, age_bin (5 groups), and fare_bin (quartile-based) all improved model accuracy over raw features.</div><span class="tool-tag">family_size</span><span class="tool-tag">is_alone</span><span class="tool-tag">age_bin</span><span class="tool-tag">fare_bin</span></div>
+  </div>
+  <div class="sec-header" style="margin-top:64px;margin-bottom:30px;">
+    <span class="sec-eyebrow">Reference</span>
+    <h3 class="sec-title" style="font-size:var(--fs-xl);">ML Glossary</h3>
+  </div>
+  <div class="glossary">
+    <div class="gloss-item"><div class="gloss-term">GaussianNB</div><div class="gloss-def">A Naive Bayes classifier that models feature likelihoods as Gaussian distributions, parameterised by per-class mean and variance. Suitable for continuous features like age and fare.<br><span class="gloss-code">from sklearn.naive_bayes import GaussianNB</span></div></div>
+    <div class="gloss-item"><div class="gloss-term">var_smoothing</div><div class="gloss-def">The key hyperparameter of GaussianNB. Adds a fraction of the largest feature variance to all variances, preventing numerical underflow. GridSearchCV found the optimal value across 100 candidates.<br><span class="gloss-code">np.logspace(-12, -1, 100)</span></div></div>
+    <div class="gloss-item"><div class="gloss-term">StandardScaler</div><div class="gloss-def">Transforms features so each has zero mean and unit variance: x_scaled = (x − μ) / σ. Ensures numerical stability and helps GridSearchCV converge faster.<br><span class="gloss-code">scaler = StandardScaler(); X_scaled = scaler.fit_transform(X)</span></div></div>
+    <div class="gloss-item"><div class="gloss-term">Stratified Split</div><div class="gloss-def">train_test_split with stratify=y ensures training and test sets have the same class ratio (38.4% survived) as the full dataset, preventing biased evaluation.<br><span class="gloss-code">train_test_split(X, y, stratify=y, test_size=0.2)</span></div></div>
+    <div class="gloss-item"><div class="gloss-term">ROC-AUC</div><div class="gloss-def">Area Under the ROC Curve — measures how well the model separates the two classes across all decision thresholds. Your model achieved ~0.86 AUC, significantly above the 0.5 baseline.</div></div>
+    <div class="gloss-item"><div class="gloss-term">LabelEncoder</div><div class="gloss-def">Converts categorical strings to integers. sex: {female→0, male→1}. embarked: {C→0, Q→1, S→2}.<br><span class="gloss-code">le = LabelEncoder(); df['sex'] = le.fit_transform(df['sex'])</span></div></div>
+    <div class="gloss-item"><div class="gloss-term">10-Fold CV</div><div class="gloss-def">Splits training data into 10 folds, trains on 9 and validates on 1, rotating through all folds. The mean accuracy is a more reliable estimate of generalisation performance.</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PAGE: VISITORS -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page" id="page-visitors">
+<div class="container-sm">
+  <div class="sec-header">
+    <span class="sec-eyebrow">Community · Live Analytics · Supabase</span>
+    <h2 class="sec-title">Visitor Analytics</h2>
+    <div class="sec-rule"></div>
+  </div>
+
+  <div class="visitor-bar">
+    <div class="vis-stat"><span class="vis-num" id="v-total">—</span><div class="vis-lbl">Total Visits</div></div>
+    <div class="vis-stat"><span class="vis-num" id="v-preds">—</span><div class="vis-lbl">Predictions Made</div></div>
+    <div class="vis-stat"><span class="vis-num" id="v-rate">—</span><div class="vis-lbl">Survival Rate</div></div>
+    <div class="vis-stat"><span class="vis-num" id="v-dl">—</span><div class="vis-lbl">PDFs Downloaded</div></div>
+  </div>
+
+  <div class="visit-form-wrap">
+    <div class="visit-form-title">✦ Sign the Passenger Manifest ✦</div>
+    <div class="field">
+      <label class="lbl">Your Name</label>
+      <input type="text" id="vf-name" placeholder="Enter your name to be recorded"/>
+    </div>
+    <div class="field">
+      <label class="lbl">Your Role / Interest</label>
+      <select id="vf-role">
+        <option value="Student">Data Science Student</option>
+        <option value="Developer">Developer / Engineer</option>
+        <option value="Researcher">Researcher</option>
+        <option value="Enthusiast">History / Titanic Enthusiast</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="lbl">Message (optional)</label>
+      <input type="text" id="vf-msg" placeholder="Leave a thought..."/>
+    </div>
+    <button class="predict-btn" style="margin-top:10px;" onclick="registerVisitor()">
+      <span>✦ &nbsp; Board the Manifest</span>
+    </button>
+  </div>
+
+  <div class="visit-log">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div class="form-title" style="margin-bottom:0;">Passenger Manifest</div>
+      <div class="sync-indicator"><div class="sync-dot"></div>Live · Supabase</div>
+    </div>
+    <div id="visitor-log">
+      <div style="text-align:center;padding:48px;color:var(--text-dim);font-style:italic;font-size:var(--fs-base);">Loading manifest from database…</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
+<script>
+// ════════════════════════════════════════════════════════════════
+//  ⚙️  SUPABASE CONFIG — PASTE YOUR KEYS HERE
+//     Step 1: Go to https://supabase.com → New project
+//     Step 2: Settings → API → copy Project URL and anon key
+//     Step 3: Paste below and save
+// ════════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://vmoxocfiuldnfeumlmgt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtb3hvY2ZpdWxkbmZldW1sbWd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzY5MDgsImV4cCI6MjA5MDExMjkwOH0.eng74dFdU5fUvnf_qja-SwB-stlaaWp4yhAU9TDWv8U';
+
+// Supabase client (will be null until keys are set)
+let sb = null;
+let dbOnline = false;
+
+function initSupabase(){
+  if(SUPABASE_URL === 'YOUR_SUPABASE_URL') return;
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    dbOnline = true;
+    document.getElementById('db-status').className = 'online';
+    showToast('✦ Connected to Supabase database');
+  } catch(e) {
+    console.error('Supabase init failed:', e);
+  }
+}
+
+// Fallback to localStorage when DB not configured
+const LOCAL = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; }},
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+let localStats = LOCAL.get('bt-stats') || {visits:0,preds:0,survived:0,downloads:0};
+let localVisitors = LOCAL.get('bt-visitors') || [];
+
+// ── CURSOR ───────────────────────────────────────────
+const cur  = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; cur.style.left=mx+'px'; cur.style.top=my+'px'; });
+(function animRing(){ rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); })();
+
+// ── PARTICLES ────────────────────────────────────────
+const ph = document.getElementById('particles-home');
+for(let i=0;i<35;i++){
+  const p=document.createElement('div'); p.className='particle';
+  const sz=Math.random()*3+1;
+  p.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;animation-duration:${6+Math.random()*14}s;animation-delay:${Math.random()*12}s;`;
+  ph.appendChild(p);
+}
+
+// ── TOAST ────────────────────────────────────────────
+function showToast(msg, dur=3000){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+// ── PAGE NAV ──────────────────────────────────────────
+let chartsInited = false;
+function goPage(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='eda' && !chartsInited){ setTimeout(initCharts,100); }
+  if(id==='visitors'){ loadVisitorLog(); }
+}
+
+// ── PILL TOGGLE ───────────────────────────────────────
+const pillState = {sex:1, pclass:2};
+function setPill(el){
+  const f=el.dataset.f;
+  document.querySelectorAll(`[data-f="${f}"]`).forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  pillState[f]=parseInt(el.dataset.v);
+}
+
+// ── DB: RECORD VISIT ──────────────────────────────────
+async function recordVisit(){
+  if(dbOnline && sb){
+    try {
+      const { data } = await sb.from('visits').insert([{ visited_at: new Date().toISOString(), user_agent: navigator.userAgent.slice(0,120) }]);
+    } catch(e){}
+  }
+  // Always update local fallback
+  localStats.visits++;
+  LOCAL.set('bt-stats', localStats);
+  await refreshStats();
+}
+
+// ── DB: REFRESH STATS ──────────────────────────────────
+async function refreshStats(){
+  let visits=0, preds=0, survived=0, downloads=0;
+  if(dbOnline && sb){
+    try {
+      const [v,p,d] = await Promise.all([
+        sb.from('visits').select('*', {count:'exact', head:true}),
+        sb.from('predictions').select('survived, pdf_downloaded'),
+        Promise.resolve(null)
+      ]);
+      visits = v.count || 0;
+      if(p.data){ preds=p.data.length; survived=p.data.filter(r=>r.survived).length; downloads=p.data.filter(r=>r.pdf_downloaded).length; }
+    } catch(e){ /* fallback */ visits=localStats.visits; preds=localStats.preds; survived=localStats.survived; downloads=localStats.downloads; }
+  } else {
+    visits=localStats.visits; preds=localStats.preds; survived=localStats.survived; downloads=localStats.downloads;
+  }
+
+  const rate = preds>0 ? Math.round(survived/preds*100)+'%' : '—';
+  document.getElementById('nav-count').textContent = visits+' visits';
+  const ids = ['v-total','pred-count','v-preds'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=id==='v-total'?visits:preds; });
+  ['surv-rate','v-rate'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=rate; });
+  const vdl=document.getElementById('v-dl'); if(vdl) vdl.textContent=downloads;
+}
+
+// ── NAIVE BAYES INFERENCE ─────────────────────────────
+const PRIORS = {0:0.616, 1:0.384};
+const NB_MEANS = {
+  0: [2.53,0.834,30.63,0.540,0.332,22.12,1.606,1.872,0.727,2.02,0.89],
+  1: [1.95,0.320,28.41,0.474,0.464,48.40,1.303,1.938,0.603,1.88,1.42]
+};
+const NB_VARS = {
+  0: [0.490,0.138,189.0,0.880,0.557,1181.0,0.698,1.52,0.198,1.82,1.11],
+  1: [0.560,0.218,179.0,0.552,0.600,3214.0,0.504,1.63,0.239,1.72,1.18]
+};
+const SC_MEAN=[2.294,0.644,29.70,0.523,0.381,32.2,1.482,1.905,0.684,1.952,1.146];
+const SC_STD =[0.838,0.479,13.60,1.103,0.807,49.7,0.802,1.602,0.465,1.348,1.112];
+function gaussPdf(x,mu,v){ const sv=Math.max(v,1e-9); return Math.exp(-0.5*Math.pow(x-mu,2)/sv)/Math.sqrt(2*Math.PI*sv); }
+function gnbPredict(feats){
+  const lp={};
+  for(const c of [0,1]){
+    let lpr=Math.log(PRIORS[c]);
+    for(let i=0;i<feats.length;i++) lpr+=Math.log(Math.max(gaussPdf(feats[i],NB_MEANS[c][i],NB_VARS[c][i]),1e-300));
+    lp[c]=lpr;
+  }
+  const mx=Math.max(lp[0],lp[1]);
+  const e0=Math.exp(lp[0]-mx), e1=Math.exp(lp[1]-mx), tot=e0+e1;
+  return {pSurv:e1/tot, pDead:e0/tot};
+}
+
+let lastPrediction = null;
+
+async function runPredict(){
+  const btn=document.getElementById('btn-lbl');
+  btn.innerHTML='<span class="spinner"></span>Computing…';
+  setTimeout(async ()=>{
+    const age    = parseFloat(document.getElementById('age-r').value)||30;
+    const fare   = parseFloat(document.getElementById('p-fare').value)||21;
+    const sibsp  = parseInt(document.getElementById('sib-r').value);
+    const parch  = parseInt(document.getElementById('par-r').value);
+    const emb    = parseInt(document.getElementById('p-emb').value);
+    const sex    = pillState.sex;
+    const pclass = pillState.pclass;
+    const name   = document.getElementById('p-name').value.trim()||'Anonymous Passenger';
+
+    const famSz=sibsp+parch+1;
+    const isAlone=famSz===1?1:0;
+    const ageBin=age<=12?0:age<=18?1:age<=35?2:age<=60?3:4;
+    const fareBin=fare<7.9?0:fare<14.5?1:fare<31.3?2:3;
+    const raw=[pclass,sex,age,sibsp,parch,fare,emb,famSz,isAlone,ageBin,fareBin];
+    const scaled=raw.map((v,i)=>(v-SC_MEAN[i])/SC_STD[i]);
+    const {pSurv,pDead}=gnbPredict(scaled);
+    const survived=pSurv>=0.5;
+    const pct=Math.round(pSurv*100);
+
+    const portMap={0:'Cherbourg (C)',1:'Queenstown (Q)',2:'Southampton (S)'};
+    const classMap={1:'1st Class',2:'2nd Class',3:'3rd Class'};
+    const sexMap={0:'Female',1:'Male'};
+    lastPrediction={name,age,sex,pclass,fare,sibsp,parch,emb,famSz,pSurv,pDead,survived,pct,
+      ageBin,fareBin,isAlone,ts:new Date().toLocaleString(),
+      portStr:portMap[emb]||'Southampton', classStr:classMap[pclass], sexStr:sexMap[sex]};
+
+    // Save to Supabase
+    if(dbOnline && sb){
+      try {
+        await sb.from('predictions').insert([{
+          passenger_name: name,
+          age, sex: sexMap[sex], pclass: classMap[pclass],
+          fare, port: portMap[emb]||'Southampton',
+          siblings_spouse: sibsp, parents_children: parch,
+          family_size: famSz, is_alone: isAlone===1,
+          survived, survival_probability: pct,
+          predicted_at: new Date().toISOString(),
+          pdf_downloaded: false
+        }]);
+      } catch(e){ console.error('DB write failed:', e); }
+    }
+    // Local fallback
+    localStats.preds++; if(survived) localStats.survived++;
+    LOCAL.set('bt-stats', localStats);
+
+    showResult(lastPrediction);
+    await refreshStats();
+    btn.innerHTML='⚓ &nbsp; Reveal My Fate';
+    showToast(survived?'🛟 Survived! Result saved to database.':'🌊 Perished. Result saved to database.');
+  },900);
+}
+
+function showResult(d){
+  const panel=document.getElementById('result-panel');
+  document.getElementById('placeholder-card').style.display='none';
+  panel.className='result-panel show '+(d.survived?'survived':'died');
+  document.getElementById('r-icon').textContent=d.survived?'🛟':'🌊';
+  document.getElementById('r-verdict').textContent=d.survived?'YOU SURVIVED':'YOU PERISHED';
+  document.getElementById('r-pct').textContent=d.pct+'%';
+  document.getElementById('r-label').textContent='Probability of survival · Gaussian Naive Bayes';
+  const fill=document.getElementById('r-fill');
+  fill.style.width='0%'; setTimeout(()=>{ fill.style.width=d.pct+'%'; },60);
+  const factors=[];
+  if(d.sex===0) factors.push({i:'🌺',t:'<strong>Female</strong> — "Women and children first": 74.2% survival rate',pos:true});
+  else factors.push({i:'⚓',t:'<strong>Male</strong> — Only 18.9% of men survived the evacuation',pos:false});
+  if(d.pclass===1) factors.push({i:'🎩',t:'<strong>1st Class</strong> — Upper decks, nearest lifeboats: 62.9% survival',pos:true});
+  else if(d.pclass===2) factors.push({i:'🧳',t:'<strong>2nd Class</strong> — Middle decks: 47.3% survival rate',pos:null});
+  else factors.push({i:'⛓',t:'<strong>3rd Class</strong> — Lower decks, restricted access: 24.2% survival',pos:false});
+  if(d.ageBin===0) factors.push({i:'🧒',t:'<strong>Child (≤12)</strong> — Priority lifeboat boarding applied',pos:true});
+  else if(d.age>60) factors.push({i:'🦯',t:'<strong>Senior passenger</strong> — Lower mobility in evacuation',pos:false});
+  if(d.isAlone) factors.push({i:'🚶',t:'<strong>Travelling alone</strong> — No family coordination burden',pos:null});
+  else if(d.famSz<=4) factors.push({i:'👨‍👩‍👧',t:`<strong>Family of ${d.famSz}</strong> — Small family, manageable evacuation`,pos:true});
+  else factors.push({i:'👨‍👩‍👦‍👦',t:`<strong>Large family (${d.famSz})</strong> — Difficult to evacuate together`,pos:false});
+  if(d.fare>50) factors.push({i:'💷',t:'<strong>High fare</strong> — Better cabin position, deck access',pos:true});
+  document.getElementById('r-factors').innerHTML=factors.map(f=>`<div class="factor"><span class="factor-icon">${f.i}</span><span class="factor-text">${f.t}</span></div>`).join('');
+}
+
+// ── PDF DOWNLOAD ───────────────────────────────────────
+async function downloadPDF(){
+  if(!lastPrediction){ showToast('Run a prediction first!'); return; }
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const d=lastPrediction; const W=210, margin=20;
+  doc.setFillColor(4,4,4); doc.rect(0,0,W,297,'F');
+  doc.setDrawColor(244,160,0); doc.setLineWidth(0.3); doc.rect(8,8,194,281);
+  doc.setLineWidth(0.1); doc.rect(10,10,190,277);
+  [[12,12],[198,12],[12,285],[198,285]].forEach(([x,y])=>{ doc.setFillColor(244,160,0); doc.circle(x,y,1.5,'F'); });
+  doc.setFillColor(20,16,0); doc.rect(10,10,190,40,'F');
+  doc.setDrawColor(244,160,0); doc.setLineWidth(0.5); doc.line(10,50,200,50);
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(244,160,0);
+  doc.text('BAYESTANIC', W/2, 28, {align:'center'});
+  doc.setFontSize(9); doc.setTextColor(180,140,60); doc.setFont('helvetica','italic');
+  doc.text('Titanic Survival Intelligence — Gaussian Naive Bayes Prediction Report', W/2, 36, {align:'center'});
+  doc.setFontSize(7); doc.setTextColor(100,80,40);
+  doc.text(`Generated: ${d.ts}`, W/2, 44, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(255,248,231);
+  doc.text(d.name.toUpperCase(), W/2, 68, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(122,96,64);
+  doc.text('PASSENGER', W/2, 74, {align:'center'});
+  const col=d.survived?[74,222,128]:[248,113,113];
+  doc.setFont('helvetica','bold'); doc.setFontSize(32); doc.setTextColor(...col);
+  doc.text(d.survived?'SURVIVED':'PERISHED', W/2, 100, {align:'center'});
+  doc.setFontSize(48); doc.setTextColor(244,160,0);
+  doc.text(d.pct+'%', W/2, 122, {align:'center'});
+  doc.setFontSize(9); doc.setTextColor(100,80,40); doc.setFont('helvetica','italic');
+  doc.text('Survival Probability (Gaussian Naive Bayes)', W/2, 130, {align:'center'});
+  doc.setFillColor(30,24,0); doc.roundedRect(margin,135,170,6,2,2,'F');
+  doc.setFillColor(...col); doc.roundedRect(margin,135,170*(d.pSurv),6,2,2,'F');
+  doc.setDrawColor(244,160,0); doc.setLineWidth(0.3); doc.line(margin,148,200-margin,148);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(244,160,0);
+  doc.text('PASSENGER PROFILE', margin, 155);
+  const details=[
+    ['Gender',d.sexStr],['Age',d.age+' years'],['Ticket Class',d.classStr],
+    ['Fare Paid','£'+d.fare],['Port',d.portStr],
+    ['Siblings/Spouse',d.sibsp],['Parents/Children',d.parch],
+    ['Family Size',d.famSz],['Travelling Alone',d.isAlone?'Yes':'No']
+  ];
+  let c1y=163,c2y=163;
+  details.forEach((item,i)=>{
+    const x=i%2===0?margin:W/2+5; const y=i%2===0?c1y:c2y;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(100,80,40);
+    doc.text(item[0].toUpperCase(),x,y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(200,180,130);
+    doc.text(String(item[1]),x,y+5);
+    if(i%2===0) c1y+=12; else c2y+=12;
+  });
+  const exY=Math.max(c1y,c2y)+8;
+  doc.setDrawColor(244,160,0); doc.setLineWidth(0.3); doc.line(margin,exY,200-margin,exY);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(244,160,0);
+  doc.text("BAYES' THEOREM — HOW THIS WAS COMPUTED", margin, exY+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(150,120,70);
+  const bayesText=`P(Survived | Profile) = P(Profile | Survived) x P(Survived) / P(Profile)\n\nPrior P(Survived) = 0.384 (38.4% of Titanic passengers survived).\nFor each feature, the Gaussian likelihood was computed using the mean and variance learned from the training set.\nAll 11 feature log-likelihoods were summed in log-space and converted via softmax to obtain the final probability of ${d.pct}%.`;
+  doc.text(doc.splitTextToSize(bayesText,170), margin, exY+14);
+  doc.setDrawColor(244,160,0); doc.setLineWidth(0.2); doc.line(margin,282,200-margin,282);
+  doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(60,45,20);
+  doc.text('BayesTanic · Gaussian Naive Bayes · Scikit-Learn · Python', W/2, 287, {align:'center'});
+  doc.save(`BayesTanic_${d.name.replace(/\s+/g,'_')}_Prediction.pdf`);
+
+  // Mark PDF downloaded in Supabase
+  if(dbOnline && sb){
+    try {
+      await sb.from('predictions')
+        .update({pdf_downloaded:true})
+        .eq('passenger_name', d.name)
+        .order('predicted_at',{ascending:false})
+        .limit(1);
+    } catch(e){}
+  }
+  localStats.downloads++; LOCAL.set('bt-stats',localStats);
+  await refreshStats();
+  showToast('📄 PDF downloaded & recorded!');
+}
+
+// ── VISITOR REGISTRATION ───────────────────────────────
+async function registerVisitor(){
+  const name=document.getElementById('vf-name').value.trim();
+  if(!name){ showToast('Please enter your name.'); return; }
+  const role=document.getElementById('vf-role').value;
+  const msg =document.getElementById('vf-msg').value.trim();
+
+  if(dbOnline && sb){
+    try {
+      await sb.from('visitors').insert([{
+        name, role, message:msg||null,
+        signed_at: new Date().toISOString()
+      }]);
+      showToast('✦ Welcome aboard, '+name+'!');
+    } catch(e){ showToast('Error saving. Check your Supabase config.'); console.error(e); return; }
+  } else {
+    localVisitors.unshift({name,role,msg,ts:new Date().toLocaleString()});
+    if(localVisitors.length>50) localVisitors=localVisitors.slice(0,50);
+    LOCAL.set('bt-visitors',localVisitors);
+    showToast('✦ Signed locally (DB not connected)');
+  }
+  document.getElementById('vf-name').value='';
+  document.getElementById('vf-msg').value='';
+  loadVisitorLog();
+}
+
+// ── LOAD VISITOR LOG FROM SUPABASE ────────────────────
+async function loadVisitorLog(){
+  const log=document.getElementById('visitor-log');
+  if(dbOnline && sb){
+    try {
+      const {data,error}=await sb.from('visitors').select('*').order('signed_at',{ascending:false}).limit(50);
+      if(error) throw error;
+      if(!data||!data.length){ log.innerHTML='<div style="text-align:center;padding:48px;color:var(--text-dim);font-style:italic;font-size:var(--fs-base);">No visitors yet. Be the first.</div>'; return; }
+      log.innerHTML=data.map(v=>`
+        <div class="log-row">
+          <div style="flex:1;">
+            <div class="log-name">${esc(v.name)} <span class="log-badge">${esc(v.role)}</span></div>
+            ${v.message?`<div style="font-size:var(--fs-sm);color:var(--text-dim);margin-top:4px;font-style:italic;">"${esc(v.message)}"</div>`:''}
+          </div>
+          <div class="log-time">${new Date(v.signed_at).toLocaleString()}</div>
+        </div>`).join('');
+    } catch(e){ renderLocalLog(log); }
+  } else { renderLocalLog(log); }
+}
+
+function renderLocalLog(log){
+  if(!localVisitors.length){ log.innerHTML='<div style="text-align:center;padding:48px;color:var(--text-dim);font-style:italic;font-size:var(--fs-base);">No visitors yet.</div>'; return; }
+  log.innerHTML=localVisitors.map(v=>`
+    <div class="log-row">
+      <div style="flex:1;"><div class="log-name">${esc(v.name)} <span class="log-badge">${esc(v.role)}</span></div>${v.msg?`<div style="font-size:var(--fs-sm);color:var(--text-dim);margin-top:4px;font-style:italic;">"${esc(v.msg)}"</div>`:''}</div>
+      <div class="log-time">${v.ts}</div>
+    </div>`).join('');
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── BAYES CALCULATOR ──────────────────────────────────
+function calcBayes(){
+  const pa=parseFloat(document.getElementById('bc-pa').value)||0;
+  const pba=parseFloat(document.getElementById('bc-pba').value)||0;
+  const pb=parseFloat(document.getElementById('bc-pb').value)||1;
+  document.getElementById('bc-result').textContent=Math.min((pba*pa)/Math.max(pb,0.0001),1).toFixed(3).replace(/^0\./,'')+'%'
+    .replace('%%','%');
+  const r=((pba*pa)/Math.max(pb,0.0001)*100);
+  document.getElementById('bc-result').textContent=Math.min(r,100).toFixed(1)+'%';
+}
+
+// ── CHARTS ────────────────────────────────────────────
+const SAFFRON='rgba(244,160,0,0.85)', SAFFRON_DIM='rgba(244,160,0,0.35)',
+      RED='rgba(220,80,80,0.8)', GREEN='rgba(80,180,100,0.8)', GRID='rgba(244,160,0,0.08)';
+const chartDefaults={
+  responsive:true, maintainAspectRatio:true,
+  plugins:{legend:{labels:{color:'#8A7050',font:{family:"'Space Mono'",size:11}}},
+    tooltip:{bodyColor:'#E8D8B0',titleColor:'#F4A000',backgroundColor:'rgba(4,4,4,0.92)',borderColor:'rgba(244,160,0,0.3)',borderWidth:1}},
+  scales:{x:{grid:{color:GRID},ticks:{color:'#7A6840',font:{family:"'Space Mono'",size:10}}},
+          y:{grid:{color:GRID},ticks:{color:'#7A6840',font:{family:"'Space Mono'",size:10}}}}
+};
+
+function initCharts(){
+  if(chartsInited) return; chartsInited=true;
+  Chart.defaults.color='#8A7050';
+  new Chart(document.getElementById('chart-gender'),{type:'bar',data:{labels:['Male','Female'],datasets:[{label:'Did Not Survive',data:[468,81],backgroundColor:RED},{label:'Survived',data:[109,233],backgroundColor:GREEN}]},options:{...chartDefaults,scales:{x:{stacked:true,...chartDefaults.scales.x},y:{stacked:true,...chartDefaults.scales.y}}}});
+  new Chart(document.getElementById('chart-pclass'),{type:'bar',data:{labels:['1st Class','2nd Class','3rd Class'],datasets:[{label:'Did Not Survive',data:[80,97,372],backgroundColor:RED},{label:'Survived',data:[136,87,119],backgroundColor:GREEN}]},options:{...chartDefaults,scales:{x:{stacked:true,...chartDefaults.scales.x},y:{stacked:true,...chartDefaults.scales.y}}}});
+  new Chart(document.getElementById('chart-age'),{type:'line',data:{labels:['0-5','6-10','11-15','16-20','21-25','26-30','31-35','36-40','41-45','46-50','51-55','56-60','61+'],datasets:[{label:'Survived',data:[28,12,8,22,45,55,42,38,22,18,12,9,11],fill:true,backgroundColor:'rgba(80,180,100,0.12)',borderColor:GREEN,tension:.4,pointRadius:3},{label:'Did Not Survive',data:[15,7,18,55,80,90,68,55,38,30,20,18,25],fill:true,backgroundColor:'rgba(220,80,80,0.08)',borderColor:RED,tension:.4,pointRadius:3}]},options:chartDefaults});
+  new Chart(document.getElementById('chart-fare'),{type:'bar',data:{labels:['£0-7','£7-14','£14-31','£31-100','£100-200','£200+'],datasets:[{label:'Did Not Survive',data:[210,185,115,50,18,5],backgroundColor:RED},{label:'Survived',data:[60,80,90,70,30,12],backgroundColor:GREEN}]},options:chartDefaults});
+  new Chart(document.getElementById('chart-emb'),{type:'bar',data:{labels:['Cherbourg 1st','Cherbourg 2nd','Cherbourg 3rd','Southampton 1st','Southampton 2nd','Southampton 3rd','Queenstown 1st','Queenstown 2nd','Queenstown 3rd'],datasets:[{label:'Survival Rate %',data:[69,57,34,58,44,23,100,33,27],backgroundColor:Array(9).fill(0).map((_,i)=>i<3?'rgba(244,160,0,0.7)':i<6?SAFFRON_DIM:'rgba(196,94,0,0.6)'),borderColor:'rgba(244,160,0,0.3)',borderWidth:1}]},options:{...chartDefaults,scales:{x:{...chartDefaults.scales.x,ticks:{...chartDefaults.scales.x.ticks,maxRotation:35}},y:{...chartDefaults.scales.y,max:100}}}});
+  new Chart(document.getElementById('chart-family'),{type:'line',data:{labels:['1 (alone)','2','3','4','5','6','7+'],datasets:[{label:'Survival Rate %',data:[30.5,55.2,57.8,72.4,20.0,16.7,10.0],fill:true,backgroundColor:'rgba(244,160,0,0.08)',borderColor:SAFFRON,tension:.4,pointRadius:6,pointBackgroundColor:SAFFRON,pointBorderColor:'#040404'}]},options:{...chartDefaults,scales:{x:{...chartDefaults.scales.x},y:{...chartDefaults.scales.y,min:0,max:100}}}});
+  new Chart(document.getElementById('chart-conf'),{type:'bar',data:{labels:['True Neg (Dead→Dead)','False Pos (Dead→Surv)','False Neg (Surv→Dead)','True Pos (Surv→Surv)'],datasets:[{label:'Count',data:[95,13,22,49],backgroundColor:['rgba(80,180,100,0.7)','rgba(220,80,80,0.7)','rgba(220,80,80,0.7)','rgba(80,180,100,0.7)'],borderColor:'rgba(244,160,0,0.2)',borderWidth:1}]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,legend:{display:false}},scales:{x:{...chartDefaults.scales.x,ticks:{...chartDefaults.scales.x.ticks,maxRotation:20,font:{size:9}}},y:{...chartDefaults.scales.y}}}});
+}
+
+// ── INIT ──────────────────────────────────────────────
+initSupabase();
+recordVisit();
+calcBayes();
+</script>
+</body>
+</html>
