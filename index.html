@@ -1085,9 +1085,10 @@ input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.3); }
 //     Step 2: Settings → API → copy Project URL and anon key
 //     Step 3: Paste below and save
 // ════════════════════════════════════════════════════════════════
-const SUPABASE_URL = 'https://vmoxocfiuldnfeumlmgt.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtb3hvY2ZpdWxkbmZldW1sbWd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzY5MDgsImV4cCI6MjA5MDExMjkwOH0.eng74dFdU5fUvnf_qja-SwB-stlaaWp4yhAU9TDWv8U';
 
+// This is safe for GitHub!
+const SUPABASE_URL = window.env?.SUPABASE_URL || "";
+const SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || "";
 // Supabase client (will be null until keys are set)
 let sb = null;
 let dbOnline = false;
